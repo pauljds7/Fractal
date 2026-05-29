@@ -32,6 +32,33 @@ cc_cores_per_SM_dict = {
     (12,0) : 128
     }
 
+class Mesh():
+    def __init__(self, bounds, dims):
+        """
+        Mesh object to describe bounds and resolution of fractal image complex field both in calculation and visualization
+        :param bounds: bounds of fractal image complex field: (real_lower, real_upper, imag_lower, imag_upper)
+        :param dims: dimensions/resolution of fractal image (width_px, height_px)
+        """
+        self.bounds = bounds
+        self.dims = dims
+        self.total_points = dims[0] * dims[1]
+        self.d = ((bounds[1] - bounds[0]) / dims[0], (bounds[3] - bounds[2]) / dims[1])
+        self.mesh = np.zeros(self.total_points).astype(complex).reshape(dims[0], dims[1])
+        for i in range(dims[0]):
+            for jj in range(dims[1]):
+                self.mesh[i, jj] = complex((bounds[0] + i * self.d[0]), (bounds[3] - jj * self.d[1]))
+
+    def get_updated_mesh_px(self, bounds_px):
+        real_part = [self.mesh[bounds_px[0][0]][bounds_px[0][1]].real.item(), self.mesh[bounds_px[1][0]][bounds_px[1][1]].real.item()]
+        imag_part = [self.mesh[bounds_px[0][0]][bounds_px[0][1]].imag.item(), self.mesh[bounds_px[1][0]][bounds_px[1][1]].imag.item()]
+        real_part.sort()
+        imag_part.sort()
+        new_bounds = (real_part[0], real_part[1], imag_part[0], imag_part[1])
+        return self.get_updated_mesh(new_bounds)
+
+    def get_updated_mesh(self, bounds):
+        return Mesh(bounds, self.dims)
+
 def get_current_card():
     """
     :return: current active gpu device object
